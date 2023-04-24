@@ -25,30 +25,38 @@ pub extern "C" fn _start() -> !{
     loop {}
 }
 
-// this function is the called on panic
+// this function is the called on panic on not test
+#[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
+    loop {}
+}
+// this function is the called on panic test
+#[cfg(test)]
+#[panic_handler]
+fn panic(info: &PanicInfo) -> ! {
+    serial_println!("[failed]\n");
+    serial_println!("Error: {}\n", info);
+    exit_qemu(QemuExitCode::Failure);
     loop {}
 }
 
 // TO RUN cargo build --target thumbv7em-none-eabihf
 // cargo run --target x86_64-blog_os.json -- -drive format=raw,file=target/x86_64-blog_os/debug/bootimage-blog_os.bin  
 
-
+//dyn is used to call functions structs or enum that uses the trait
 #[cfg(test)]
-fn test_runner(tests: &[&dyn Fn()]) {
+fn test_runner(tests: &[&dyn Testable]) {
     serial_println!("Running {} tests", tests.len());
     for test in tests {
-        test();
+        test.run();
     }
 }
 
 #[test_case]
 fn trivial_assertion() {
-    serial_print!("trivial assertion... ");
-    assert_eq!(0, 1);
-    serial_println!("[ok]");
+    assert_eq!(1, 1);
 }
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
@@ -70,3 +78,22 @@ pub fn exit_qemu(exit_code: QemuExitCode){
 // this function creates a new port at 0xf4 which is the iobase of the isa-debug-exit device
 // it writes the passed exit code to the port  which is an unsafe operation
 // we make sure that the default exit codes of qemu dont collide with our exit codes
+//testable is created to print all 
+pub trait Testable {
+    fn run(&self)  -> ();
+}
+
+//implementing Fn trait for printing Ok and calling the function passed in and printing function name
+
+impl<T:Fn()> Testable for T{
+    fn run(&self) {
+        serial_println!("{}..\t", core::any::type_name::<T>());// core::any::type_name::<T>() return the function in string representation
+        self();// calls the function
+        serial_println!("[ok]");
+    }
+ }
+
+// impl<T> Testable for T 
+// where T:Fn(){
+    
+// }

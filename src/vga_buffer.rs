@@ -168,6 +168,28 @@ pub fn _print(args: fmt::Arguments){
 }
 
 
+#[test_case]
+fn test_vga_buffer(){
+    println!("VGA Wworks {}",1);
+}
+
+#[test_case]
+fn test_many_println(){
+    for _ in 0..200{
+        println!("VGA works");
+    }
+}
+
+#[test_case]
+fn test_println_output(){
+    let s = "Some test string that fits on a single line";
+    println!("{}", s);
+    for (i, c) in s.chars().enumerate(){
+        let screen_char = WRITER.lock().buffer.chars[BUFFER_HEIGHT - 2][i].read();
+        assert_eq!(char::from(screen_char.ascii_char), c);
+    }
+}
+
 
 
 // use core::fmt::Write;

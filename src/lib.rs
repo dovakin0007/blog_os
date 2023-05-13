@@ -61,7 +61,7 @@ pub fn test_panic_handle(info: &PanicInfo) -> !{
     serial_println!("Error: {}", info);
     exit_qemu(QemuExitCode::Failure);
 
-    loop {}
+    hlt_loop()
 }
 
 #[no_mangle]
@@ -70,7 +70,7 @@ pub extern "C" fn _start()->!{
     init();
     test_main();
     
-    loop {}
+    hlt_loop()
 
 }
 
@@ -83,5 +83,14 @@ fn panic(info: &PanicInfo)-> ! {
 pub fn init(){
     interrupts::init_idt();
     gdt::init();
+    unsafe{ interrupts::PICS.lock().initialize() };// initializing interrupt in PICS
+    x86_64::instructions::interrupts::enable(); //calling an interrupt
+
+}
+
+pub fn hlt_loop() -> ! {
+    loop {
+        x86_64::instructions::hlt();// allows cpu to go into sleep mode until next interrupt arrives
+    }
 }
 

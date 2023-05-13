@@ -149,12 +149,12 @@ impl fmt::Write for ScreenWriter{
 #[macro_export] 
 macro_rules! println {
     () => ($crate::print!("\n"));
-    ($($arg:tt)*)=>($crate::print!("{}\n", format_args!($($arg)*)));
+    ($($arg:tt)*)=>($crate::print!("{}\n", format_args!($($arg)*)))
 }
 // implementing macro for println which gets arguments and passes to print fmt::arguments is used here to pass in the string as args
 #[macro_export]
 macro_rules! print {
-    ($($args:tt)*) => {($crate::vga_buffer::_print(format_args!($($args)*)));
+    ($($args:tt)*) => {($crate::vga_buffer::_print(format_args!($($args)*)))
       // the print macro takes in arguments and passes into _print function   
     };
 }
@@ -163,7 +163,11 @@ macro_rules! print {
 
 pub fn _print(args: fmt::Arguments){
     use core::fmt::Write;
-    WRITER.lock().write_fmt(args).unwrap();
+    use x86_64::instructions::interrupts;
+
+    interrupts::without_interrupts(|| {
+    WRITER.lock().write_fmt(args).unwrap();// disable interrupt when write is locked to avoid deadlock
+    })
     //now the given arguments are passed to the write_str which implements Writw Trait and which in turn implements buffer
 }
 
@@ -183,11 +187,15 @@ fn test_many_println(){
 #[test_case]
 fn test_println_output(){
     let s = "Some test string that fits on a single line";
+    use x86_64::instructions::interrupts;
+
+    interrupts::without_interrupts(|| {
     println!("{}", s);
     for (i, c) in s.chars().enumerate(){
         let screen_char = WRITER.lock().buffer.chars[BUFFER_HEIGHT - 2][i].read();
         assert_eq!(char::from(screen_char.ascii_char), c);
     }
+})
 }
 
 

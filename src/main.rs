@@ -7,6 +7,7 @@
 
 use::blog_os::println;
 use core::panic::PanicInfo;
+use blog_os::hlt_loop;
 
 
 #[no_mangle] // dont mangle the name of this function or else it will be turned into a random name
@@ -16,25 +17,55 @@ pub extern "C" fn _start() -> !{
     // this function is the entry point, since the linker looks for this function
     // named '_start' by default
     println!("hello world");
-
     blog_os::init();
+    
+    use x86_64::registers::control::Cr3;
+
+    let (l4_page_table, _) = Cr3::read();
+    println!("L4 Page table start address is located at {:?}", l4_page_table.start_address()); //gets the start location of l4 table
+    
     //x86_64::instructions::interrupts::int3();// calling interrupt int 3
 
     // unsafe {
     //     *(0xdeadbeef as *mut u8) = 4;
     // };
 
-    fn stack_overflow(){
-        stack_overflow();
-    }//invoking stack overflow 
+    // let ptr = 0xdeadbeef as *mut u8;
+    // unsafe{
+    //     *ptr = 122;
+    // }
 
-    stack_overflow();
+    // let ptr = 0x2031b2 as *mut u8;
+
+    // unsafe{
+    //     let x = *ptr;
+    // }
+    // println!("read worked");
+
+    // unsafe {
+    //     *ptr = 74;
+    // }
+
+    // println!("write worked");//due to protection violation write doesn't work
+
+
+
+    // fn stack_overflow(){
+    //     stack_overflow();
+    // }//invoking stack overflow 
+
+    // stack_overflow();
+
+
+
 
     #[cfg(test)]
     test_main();
 
     println!("didn't crash");
-    loop {}
+
+    hlt_loop();
+    
 }
 
 // this function is the called on panic on not test
@@ -42,7 +73,7 @@ pub extern "C" fn _start() -> !{
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
-    loop {}
+    hlt_loop();
 }
 // this function is the called on panic test
 

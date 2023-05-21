@@ -6,7 +6,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bootloader = "0.9.18"
+bootloader = { version = "0.9.18", features = ["map_physical_memory"] }
 volatile = "0.2.6"
 spin = "0.5.2"
 x86_64 = "0.14.2"
@@ -26,6 +26,10 @@ features = ["spin_no_std"]
 # the profile used for `cargo build --release`
 [profile.release]
 # panic = "abort" # disable stack unwinding on panic
+
+# [package.metadata.bootloader]
+# map-physical-memory = true
+# physical-memory-offset = "0x0000_4000_0000_0000"
 
 [package.metadata.bootimage]
 test-args = ["-device", "isa-debug-exit,iobase=0xf4,iosize=0x04", "-serial", "stdio", "-display", "none"]

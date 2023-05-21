@@ -9,9 +9,12 @@ pub mod serial;
 pub mod vga_buffer;
 pub mod interrupts;
 pub mod gdt;
+pub mod memory;
+pub mod allocator;
+
 
 use core::panic::PanicInfo;
-
+extern crate alloc;
 
 //we declare the exit code as success and failure in the Enum
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
@@ -64,9 +67,15 @@ pub fn test_panic_handle(info: &PanicInfo) -> !{
     hlt_loop()
 }
 
+use bootloader::entry_point;
+use bootloader::BootInfo;
+
+#[cfg(test)]
+entry_point!(test_kernel_main);
+
 #[no_mangle]
 #[cfg(test)]
-pub extern "C" fn _start()->!{
+fn test_kernel_main(boot_info: &'static BootInfo)->!{
     init();
     test_main();
     

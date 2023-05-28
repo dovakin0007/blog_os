@@ -7,6 +7,7 @@
 
 use::blog_os::println;
 use core::panic::PanicInfo;
+// use std::alloc::System;
 use blog_os::{hlt_loop, memory, allocator};
 use bootloader::{BootInfo, entry_point};
 use x86_64::structures::paging::Page;
@@ -61,20 +62,30 @@ fn kernel_main(boot_info: &'static BootInfo) -> !{
     // }
 
     allocator::init_heap(&mut mapper, &mut frame_allocator).expect("initialization failed");
-    let x:Box<u8>= Box::new(41);//creating a new box
-    println!("{:p}", x);//location of box
+    // let x:Box<u8>= Box::new(41);//creating a new box
+    // println!("{:p}", x);//location of box
 
-    let mut vec = Vec::new();
-    for i in 0..500{
-        vec.push(i);
-    }
-    println!("vec at {:p}", vec.as_slice());
+    // let mut vec = Vec::new();
+    // for i in 0..500{
+    //     vec.push(i);
+    // }
+    // println!("vec at {:p}", vec.as_slice());
     
-    let reference_counter = Rc::new(vec![1,2,3,4]);
-    let cloned_reference_counter = reference_counter.clone();
-    println!("cloned Reference count is {:?}", Rc::strong_count(&cloned_reference_counter));
-    core::mem::drop(reference_counter);
-    println!("current cloned Reference count {:?}", Rc::strong_count(&cloned_reference_counter));
+    // let reference_counter = Rc::new(vec![1,2,3,4]);
+    // let cloned_reference_counter = reference_counter.clone();
+    // println!("cloned Reference count is {:?}", Rc::strong_count(&cloned_reference_counter));
+    // core::mem::drop(reference_counter);
+    // println!("current cloned Reference count {:?}", Rc::strong_count(&cloned_reference_counter));
+
+    async fn async_number() -> u32 {
+        42
+    }
+
+    async fn example_task() {
+        let number = async_number().await;
+        println!("{}", number);
+    }
+
 
 
     #[cfg(test)]
